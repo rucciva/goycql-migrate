@@ -52,15 +52,17 @@ func isReady(ctx context.Context, c dktest.ContainerInfo) bool {
 	if err = p.Query("CREATE KEYSPACE testks WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor':1}").Exec(); err != nil {
 		return false
 	}
+	return true
+
 	// Try create table
-	cluster.Keyspace = "testks"
-	p, err = cluster.CreateSession()
-	if err != nil {
-		return false
-	}
-	defer p.Close()
-	err = p.Query("CREATE TABLE IF NOT EXISTS testks (id bigint, PRIMARY KEY(id))").Exec()
-	return err == nil
+	// cluster.Keyspace = "testks"
+	// p, err = cluster.CreateSession()
+	// if err != nil {
+	// 	return false
+	// }
+	// defer p.Close()
+	// err = p.Query("CREATE TABLE IF NOT EXISTS testks (id bigint, PRIMARY KEY(id))").Exec()
+	// return err == nil
 }
 
 func Test(t *testing.T) {

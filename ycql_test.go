@@ -49,20 +49,22 @@ func isReady(ctx context.Context, c dktest.ContainerInfo) bool {
 	}
 	defer p.Close()
 	// Create keyspace for tests
-	if err = p.Query("CREATE KEYSPACE testks WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor':1}").Exec(); err != nil {
+	if err = p.Query("CREATE KEYSPACE IF NOT EXISTS testks WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor':1}").Exec(); err != nil {
 		return false
 	}
-	return true
 
-	// Try create table
-	// cluster.Keyspace = "testks"
-	// p, err = cluster.CreateSession()
-	// if err != nil {
-	// 	return false
-	// }
-	// defer p.Close()
-	// err = p.Query("CREATE TABLE IF NOT EXISTS testks (id bigint, PRIMARY KEY(id))").Exec()
-	// return err == nil
+	// Try create table to wait readiness
+	cluster.Keyspace = "testks"
+	p, err = cluster.CreateSession()
+	if err != nil {
+		return false
+	}
+	defer p.Close()
+	if err = p.Query("CREATE TABLE IF NOT EXISTS testks (id bigint, PRIMARY KEY(id))").Exec(); err != nil {
+		return false
+	}
+
+	return true
 }
 
 func Test(t *testing.T) {
@@ -71,7 +73,7 @@ func Test(t *testing.T) {
 		if err != nil {
 			t.Fatal("Unable to get mapped port:", err)
 		}
-		addr := fmt.Sprintf("cassandra://%v:%v/testks", ip, port)
+		addr := fmt.Sprintf("ycql://%v:%v/testks", ip, port)
 		p := &Cassandra{}
 		d, err := p.Open(addr)
 		if err != nil {
